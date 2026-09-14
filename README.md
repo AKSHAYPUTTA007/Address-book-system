@@ -139,4 +139,6 @@ When searching by name, the system computes a similarity score between the query
 
 ## Author
 
-**Akshay** — B.Tech 1st Year OOP Project
+**Akshay** — B.Tech 2nd Year OOP Project
+**SriDivya** — B.Tech 2nd Year OOP Project
+**Thanoj** — B.Tech 2nd Year OOP Project
