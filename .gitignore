@@ -1,0 +1,14 @@
+# Build output
+addressbook
+*.o
+*.out
+*.exe
+
+# Editor artifacts
+.vscode/
+*.swp
+*~
+.DS_Store
+
+# Backup files created by the app (don't track user exports)
+*.bak
