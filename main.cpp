@@ -22,6 +22,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 using namespace std;
 
 // -------------------------------------------------------
@@ -72,6 +73,9 @@ private:
     }
 
 public:
+    // Returns total number of contacts (used in menu header)
+    int getCount() { return (int)contacts.size(); }
+
     // Constructor: runs on startup, loads contacts from file
     AddressBook() {
         loadFromFile();
@@ -130,31 +134,59 @@ public:
         cout << "  Contact added! Total: " << contacts.size() << "\n";
     }
 
-    // DISPLAY : Show all contacts
+    // DISPLAY : Show all contacts sorted A-Z by name
     void displayContacts() {
         if (contacts.empty()) { cout << "\n  No contacts found.\n"; return; }
-        cout << "\n  === All Contacts (" << contacts.size() << ") ===\n";
+        // Sort contacts alphabetically by name (A to Z)
+        sort(contacts.begin(), contacts.end(), [](const Contact& a, const Contact& b) {
+            string na = a.name, nb = b.name;
+            for (char& c : na) c = tolower(c);
+            for (char& c : nb) c = tolower(c);
+            return na < nb;
+        });
+        cout << "\n  === All Contacts (" << contacts.size() << ") — Sorted A-Z ===\n";
         for (int i = 0; i < (int)contacts.size(); i++) {
             cout << "\n  [" << i + 1 << "]";
             printContact(i);
         }
     }
 
-    // SEARCH : Find contacts by name (partial, case-insensitive)
+    // SEARCH : Search by name (partial) or phone (exact)
     void searchContact() {
         cout << "\n  === Search Contact ===\n";
-        cout << "  Enter name to search: ";
-        string query; getline(cin, query);
-        if (query.empty()) { cout << "  Search query cannot be empty!\n"; return; }
-        int found = 0;
-        for (int i = 0; i < (int)contacts.size(); i++) {
-            if (toLower(contacts[i].name).find(toLower(query)) != string::npos) {
-                cout << "\n  Result " << ++found << ":";
-                printContact(i);
+        cout << "  1. Search by Name\n";
+        cout << "  2. Search by Phone\n";
+        cout << "  Enter choice: ";
+        int opt;
+        if (!(cin >> opt)) { cin.clear(); cin.ignore(1000, '\n'); return; }
+        cin.ignore(1000, '\n');
+
+        if (opt == 1) {
+            // Search by name — partial, case-insensitive
+            cout << "  Enter name to search: ";
+            string query; getline(cin, query);
+            if (query.empty()) { cout << "  Search query cannot be empty!\n"; return; }
+            int found = 0;
+            for (int i = 0; i < (int)contacts.size(); i++) {
+                if (toLower(contacts[i].name).find(toLower(query)) != string::npos) {
+                    cout << "\n  Result " << ++found << ":";
+                    printContact(i);
+                }
             }
+            if (found == 0) cout << "  No match found for: " << query << "\n";
+            else cout << "  " << found << " contact(s) found.\n";
+
+        } else if (opt == 2) {
+            // Search by phone — exact match
+            cout << "  Enter phone to search: ";
+            string phone; getline(cin, phone);
+            int idx = findByPhone(phone);
+            if (idx == -1) cout << "  No contact found with phone: " << phone << "\n";
+            else printContact(idx);
+
+        } else {
+            cout << "  Invalid option.\n";
         }
-        if (found == 0) cout << "  No match found for: " << query << "\n";
-        else cout << "  " << found << " contact(s) found.\n";
     }
 
     // UPDATE : Edit a contact by phone number
@@ -196,6 +228,22 @@ public:
             cout << "  Cancelled.\n";
         }
     }
+
+    // STATISTICS : Count contacts per category
+    void showStats() {
+        if (contacts.empty()) { cout << "\n  No contacts.\n"; return; }
+        cout << "\n  === Statistics ===\n";
+        cout << "  Total Contacts : " << contacts.size() << "\n\n";
+        // Count each category by looping through all contacts
+        vector<string> cats = {"Family", "Friends", "College", "Work", "Other"};
+        for (const string& cat : cats) {
+            int count = 0;
+            for (int i = 0; i < (int)contacts.size(); i++)
+                if (contacts[i].category == cat) count++;
+            if (count > 0)
+                cout << "  " << cat << "\t: " << count << "\n";
+        }
+    }
 };
 
 // -------------------------------------------------------
@@ -207,14 +255,15 @@ int main() {
     int choice;
     do {
         cout << "\n===================================\n";
-        cout << "      ADDRESS BOOK SYSTEM\n";
+        cout << "  ADDRESS BOOK  [" << book.getCount() << " contacts]\n";
         cout << "===================================\n";
         cout << "  1. Add Contact\n";
         cout << "  2. Display All Contacts\n";
         cout << "  3. Search Contact\n";
         cout << "  4. Update Contact\n";
         cout << "  5. Delete Contact\n";
-        cout << "  6. Exit\n";
+        cout << "  6. Statistics\n";
+        cout << "  7. Exit\n";
         cout << "===================================\n";
         cout << "  Enter choice: ";
         if (!(cin >> choice)) {
@@ -231,10 +280,11 @@ int main() {
             case 3: book.searchContact();   break;
             case 4: book.updateContact();   break;
             case 5: book.deleteContact();   break;
-            case 6: book.saveToFile();      break;
-            default: cout << "  Invalid! Enter 1-6.\n";
+            case 6: book.showStats();       break;
+            case 7: book.saveToFile();      break;
+            default: cout << "  Invalid! Enter 1-7.\n";
         }
-    } while (choice != 6);
+    } while (choice != 7);
 
     return 0;
 }
