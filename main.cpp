@@ -6,7 +6,7 @@
 
     OOP Concepts:
       - Struct             : Contact struct stores one contact's data
-      - Class              : AddressBook class manages the contact array
+      - Class              : AddressBook class manages the contact list
       - Constructor        : loads contacts from file when program starts
       - Member Functions   : add, display, search, update, delete, save
 
@@ -21,6 +21,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <vector>
 using namespace std;
 
 // -------------------------------------------------------
@@ -37,18 +38,16 @@ struct Contact {
 
 // -------------------------------------------------------
 // CLASS : AddressBook
-// Stores and manages an array of Contact structs
+// Stores and manages a list of Contact structs using vector.
+// Vector automatically grows — no fixed size limit.
 // -------------------------------------------------------
-const int MAX = 100;
-
 class AddressBook {
 private:
-    Contact contacts[MAX];   // array of structs
-    int count;               // number of contacts stored
+    vector<Contact> contacts;   // list of Contact structs (no size limit)
 
     // Find contact index by phone, returns -1 if not found
     int findByPhone(string phone) {
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < (int)contacts.size(); i++)
             if (contacts[i].phone == phone)
                 return i;
         return -1;
@@ -75,32 +74,32 @@ private:
 public:
     // Constructor: runs on startup, loads contacts from file
     AddressBook() {
-        count = 0;
         loadFromFile();
     }
 
-    // Read contacts from contacts.txt into the array
+    // Read contacts from contacts.txt into the vector
     void loadFromFile() {
         ifstream file("contacts.txt");
         if (!file.is_open()) return;
         string line;
-        while (getline(file, line) && count < MAX) {
+        while (getline(file, line)) {
             if (line.empty()) continue;
+            Contact c;
             stringstream ss(line);
-            getline(ss, contacts[count].name,     '|');
-            getline(ss, contacts[count].phone,    '|');
-            getline(ss, contacts[count].email,    '|');
-            getline(ss, contacts[count].address,  '|');
-            getline(ss, contacts[count].category, '|');
-            count++;
+            getline(ss, c.name,     '|');
+            getline(ss, c.phone,    '|');
+            getline(ss, c.email,    '|');
+            getline(ss, c.address,  '|');
+            getline(ss, c.category, '|');
+            contacts.push_back(c);   // add to vector
         }
         file.close();
     }
 
-    // Write all contacts from array back to contacts.txt
+    // Write all contacts from vector back to contacts.txt
     void saveToFile() {
         ofstream file("contacts.txt");
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < (int)contacts.size(); i++)
             file << contacts[i].name     << "|"
                  << contacts[i].phone    << "|"
                  << contacts[i].email    << "|"
@@ -110,9 +109,8 @@ public:
         cout << "\n  Contacts saved. Goodbye!\n";
     }
 
-    // ADD : Add a new contact to the array
+    // ADD : Add a new contact to the vector
     void addContact() {
-        if (count >= MAX) { cout << "  Address book is full!\n"; return; }
         cout << "\n  === Add Contact ===\n";
         Contact c;
         cout << "  Name     : "; getline(cin, c.name);
@@ -128,15 +126,15 @@ public:
         cout << "  Email    : "; getline(cin, c.email);
         cout << "  Address  : "; getline(cin, c.address);
         cout << "  Category : "; getline(cin, c.category);
-        contacts[count++] = c;
-        cout << "  Contact added! Total: " << count << "\n";
+        contacts.push_back(c);   // vector grows automatically
+        cout << "  Contact added! Total: " << contacts.size() << "\n";
     }
 
     // DISPLAY : Show all contacts
     void displayContacts() {
-        if (count == 0) { cout << "\n  No contacts found.\n"; return; }
-        cout << "\n  === All Contacts (" << count << ") ===\n";
-        for (int i = 0; i < count; i++) {
+        if (contacts.empty()) { cout << "\n  No contacts found.\n"; return; }
+        cout << "\n  === All Contacts (" << contacts.size() << ") ===\n";
+        for (int i = 0; i < (int)contacts.size(); i++) {
             cout << "\n  [" << i + 1 << "]";
             printContact(i);
         }
@@ -147,12 +145,9 @@ public:
         cout << "\n  === Search Contact ===\n";
         cout << "  Enter name to search: ";
         string query; getline(cin, query);
-        if (query.empty()) {
-            cout << "  Search query cannot be empty!\n";
-            return;
-        }
+        if (query.empty()) { cout << "  Search query cannot be empty!\n"; return; }
         int found = 0;
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < (int)contacts.size(); i++) {
             if (toLower(contacts[i].name).find(toLower(query)) != string::npos) {
                 cout << "\n  Result " << ++found << ":";
                 printContact(i);
@@ -195,10 +190,8 @@ public:
         cout << "  Confirm delete? (y/n): ";
         char c; cin >> c; cin.ignore(1000, '\n');
         if (c == 'y' || c == 'Y') {
-            for (int i = idx; i < count - 1; i++)
-                contacts[i] = contacts[i + 1];   // shift left
-            count--;
-            cout << "  Contact deleted! Remaining: " << count << "\n";
+            contacts.erase(contacts.begin() + idx);   // vector removes + shifts automatically
+            cout << "  Contact deleted! Remaining: " << contacts.size() << "\n";
         } else {
             cout << "  Cancelled.\n";
         }
@@ -224,12 +217,12 @@ int main() {
         cout << "  6. Exit\n";
         cout << "===================================\n";
         cout << "  Enter choice: ";
-        if (!(cin >> choice)) {   // handles letters/symbols typed by mistake
-            cin.clear();          // reset cin error state
-            cin.ignore(1000, '\n'); // clear the bad input from buffer
-            choice = 0;           // treat as invalid choice
+        if (!(cin >> choice)) {
+            cin.clear();
+            cin.ignore(1000, '\n');
+            choice = 0;
         } else {
-            cin.ignore(1000, '\n'); // clear leftover newline
+            cin.ignore(1000, '\n');
         }
 
         switch (choice) {
