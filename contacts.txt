@@ -1,3 +1,5 @@
 Akshay|9876543210|akshay@gmail.com|Kakinada|College
-Ravi|9123456789|ravi@gmail.com|Vizag|Friends
+BHAVANI|9492776533||NADAKUDURU|
 Priya|9988776655|priya@gmail.com|Hyderabad|Family
+Ravi|9123456789|ravi@gmail.com|Vizag|Friends
+SARADHI|9849887964||KAKINADA|COLLEGE

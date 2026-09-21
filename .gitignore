@@ -11,3 +11,6 @@ addressbook
 
 # Backup files created by the app (don't track user exports)
 *.bak
+address_book
+main
+*.o
