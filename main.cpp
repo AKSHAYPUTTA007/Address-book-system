@@ -117,6 +117,10 @@ public:
         Contact c;
         cout << "  Name     : "; getline(cin, c.name);
         cout << "  Phone    : "; getline(cin, c.phone);
+        if (c.name.empty() || c.phone.empty()) {
+            cout << "  Name and Phone cannot be empty!\n";
+            return;
+        }
         if (findByPhone(c.phone) != -1) {
             cout << "  Phone already exists! Contact not added.\n";
             return;
@@ -143,6 +147,10 @@ public:
         cout << "\n  === Search Contact ===\n";
         cout << "  Enter name to search: ";
         string query; getline(cin, query);
+        if (query.empty()) {
+            cout << "  Search query cannot be empty!\n";
+            return;
+        }
         int found = 0;
         for (int i = 0; i < count; i++) {
             if (toLower(contacts[i].name).find(toLower(query)) != string::npos) {
@@ -185,7 +193,7 @@ public:
         if (idx == -1) { cout << "  Contact not found!\n"; return; }
         printContact(idx);
         cout << "  Confirm delete? (y/n): ";
-        char c; cin >> c; cin.ignore();
+        char c; cin >> c; cin.ignore(1000, '\n');
         if (c == 'y' || c == 'Y') {
             for (int i = idx; i < count - 1; i++)
                 contacts[i] = contacts[i + 1];   // shift left
@@ -216,8 +224,13 @@ int main() {
         cout << "  6. Exit\n";
         cout << "===================================\n";
         cout << "  Enter choice: ";
-        cin >> choice;
-        cin.ignore();
+        if (!(cin >> choice)) {   // handles letters/symbols typed by mistake
+            cin.clear();          // reset cin error state
+            cin.ignore(1000, '\n'); // clear the bad input from buffer
+            choice = 0;           // treat as invalid choice
+        } else {
+            cin.ignore(1000, '\n'); // clear leftover newline
+        }
 
         switch (choice) {
             case 1: book.addContact();      break;
