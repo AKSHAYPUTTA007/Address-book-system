@@ -2,21 +2,20 @@
     ADDRESS BOOK SYSTEM
     Subject  : Object-Oriented Programming (C++)
     Language : C++
-    Storage  : contacts.txt   (contacts)
-               categories.txt (custom categories)
+    Storage  : contacts.txt (contacts), categories.txt (categories)
 
     OOP Concepts:
-      - Struct          : Contact struct stores one contact's data
-      - Class           : AddressBook class manages the contact list
-      - Constructor     : loads data from files when program starts
-      - Destructor      : saves data to files automatically on exit
-      - Member Functions: add, display, search, update, delete, stats
+      - Struct             : Contact struct stores one contact's data
+      - Class              : AddressBook class manages the contact list
+      - Constructor        : loads data from files on startup
+      - Destructor         : saves data to files automatically on exit
+      - Member Functions   : add, display, search, update, delete, stats
 
     Teacher Requirements:
-      - Storing contacts using structures -> struct Contact
-      - Add, Search, Delete operations   -> member functions
-      - String handling                  -> string fields, file parsing
-      - Menu-driven system               -> do-while + switch
+      - Storing contacts using structures  -> struct Contact
+      - Add, Search, Delete operations    -> member functions
+      - String handling                   -> string fields, file parsing
+      - Menu-driven system                -> do-while + switch
 */
 
 #include <iostream>
@@ -30,6 +29,7 @@ using namespace std;
 
 // -------------------------------------------------------
 // STRUCT : Contact
+// Holds the information of one contact
 // -------------------------------------------------------
 struct Contact {
     string name;
@@ -41,26 +41,28 @@ struct Contact {
 
 // -------------------------------------------------------
 // CLASS : AddressBook
+// Stores and manages a list of Contact structs using vector.
+// Vector automatically grows -- no fixed size limit.
 // -------------------------------------------------------
 class AddressBook {
 private:
-    vector<Contact> contacts;    // list of contacts (no size limit)
+    vector<Contact> contacts;    // list of contacts
     vector<string>  categories;  // list of categories (grows as new ones added)
 
-    // Find contact by phone number, returns index or -1
+    // Find contact by phone, returns index or -1
     int findByPhone(string phone) {
         for (int i = 0; i < (int)contacts.size(); i++)
             if (contacts[i].phone == phone) return i;
         return -1;
     }
 
-    // Convert string to lowercase (for case-insensitive search)
+    // Convert string to lowercase
     string toLower(string s) {
         for (char& c : s) c = tolower(c);
         return s;
     }
 
-    // Print one contact's full details
+    // Print one contact details
     void printContact(int i) {
         cout << "  ---------------------------------\n";
         cout << "  Name     : " << contacts[i].name     << "\n";
@@ -71,7 +73,7 @@ private:
         cout << "  ---------------------------------\n";
     }
 
-    // Show numbered category menu, let user pick or add new
+    // Show numbered category menu, allow adding new category
     string inputCategory() {
         while (true) {
             cout << "\n  Select Category:\n";
@@ -79,19 +81,17 @@ private:
                 cout << "  " << i + 1 << ". " << categories[i] << "\n";
             cout << "  " << categories.size() + 1 << ". Add new category\n";
             cout << "  Enter choice: ";
-
             int ch;
             if (!(cin >> ch)) { cin.clear(); cin.ignore(1000, '\n'); continue; }
             cin.ignore(1000, '\n');
-
             if (ch >= 1 && ch <= (int)categories.size()) {
-                return categories[ch - 1];           // return chosen category
+                return categories[ch - 1];
             } else if (ch == (int)categories.size() + 1) {
                 cout << "  Enter new category name: ";
                 string newCat; getline(cin, newCat);
                 if (!newCat.empty()) {
-                    categories.push_back(newCat);    // add to list
-                    saveCategories();                // save to file immediately
+                    categories.push_back(newCat);
+                    saveCategories();
                     cout << "  Category '" << newCat << "' added!\n";
                     return newCat;
                 } else {
@@ -119,7 +119,7 @@ private:
             categories = {"Family", "Friends", "College", "Work", "Other"};
     }
 
-    // Save category list to categories.txt
+    // Save categories to categories.txt
     void saveCategories() {
         ofstream file("categories.txt");
         for (const string& cat : categories)
@@ -128,26 +128,22 @@ private:
     }
 
 public:
-    // Returns total contact count (used in menu header)
+    // Returns contact count (for menu header display)
     int getCount() { return (int)contacts.size(); }
 
-    // -------------------------------------------------------
-    // CONSTRUCTOR : loads categories + contacts from files
-    // -------------------------------------------------------
+    // CONSTRUCTOR: loads categories + contacts from files
     AddressBook() {
         loadCategories();
         loadFromFile();
     }
 
-    // -------------------------------------------------------
-    // DESTRUCTOR : saves contacts + categories automatically on exit
-    // -------------------------------------------------------
+    // DESTRUCTOR: automatically saves everything when program ends
     ~AddressBook() {
         saveToFile();
         saveCategories();
     }
 
-    // Read contacts from contacts.txt into the vector
+    // Load contacts from contacts.txt
     void loadFromFile() {
         ifstream file("contacts.txt");
         if (!file.is_open()) return;
@@ -166,7 +162,7 @@ public:
         file.close();
     }
 
-    // Write all contacts to contacts.txt (silent)
+    // Save contacts to contacts.txt (silent)
     void saveToFile() {
         ofstream file("contacts.txt");
         for (int i = 0; i < (int)contacts.size(); i++)
@@ -194,7 +190,7 @@ public:
         }
         cout << "  Email    : "; getline(cin, c.email);
         cout << "  Address  : "; getline(cin, c.address);
-        c.category = inputCategory();               // pick from numbered menu
+        c.category = inputCategory();
         contacts.push_back(c);
         cout << "  Contact added! Total: " << contacts.size() << "\n";
     }
@@ -224,7 +220,6 @@ public:
         int opt;
         if (!(cin >> opt)) { cin.clear(); cin.ignore(1000, '\n'); return; }
         cin.ignore(1000, '\n');
-
         if (opt == 1) {
             cout << "  Enter name to search: ";
             string query; getline(cin, query);
@@ -237,14 +232,12 @@ public:
                 }
             if (found == 0) cout << "  No match found for: " << query << "\n";
             else cout << "  " << found << " contact(s) found.\n";
-
         } else if (opt == 2) {
             cout << "  Enter phone to search: ";
             string phone; getline(cin, phone);
             int idx = findByPhone(phone);
             if (idx == -1) cout << "  No contact found with that phone.\n";
             else printContact(idx);
-
         } else {
             cout << "  Invalid option.\n";
         }
@@ -306,13 +299,10 @@ public:
     }
 };
 
-// -------------------------------------------------------
-// Signal handler: saves if user presses Ctrl+C
-// -------------------------------------------------------
+// Signal handler: save on Ctrl+C
 AddressBook* g_book = nullptr;
-
 void saveAndExit(int) {
-    cout << "\n\n  [!] Ctrl+C detected! Saving contacts...\n";
+    cout << "\n\n  [!] Ctrl+C pressed! Saving contacts...\n";
     if (g_book) g_book->saveToFile();
     cout << "  Saved. Goodbye!\n";
     exit(0);
@@ -322,7 +312,7 @@ void saveAndExit(int) {
 // MAIN : Menu-driven system
 // -------------------------------------------------------
 int main() {
-    signal(SIGINT, saveAndExit);   // handle Ctrl+C
+    signal(SIGINT, saveAndExit);
     AddressBook book;
     g_book = &book;
 
